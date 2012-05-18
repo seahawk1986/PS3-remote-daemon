@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/python
 # vim: set fileencoding=utf-8
 #
 # Alexander Grothe May 2012
@@ -38,7 +38,7 @@ for element in dir(uinput):
 
 class devinput():
 
-    def __init__(self):
+    def __init__(self, inputDevice):
         self.timer = None
         parser = Options()
         self.options = parser.get_opts()
@@ -87,7 +87,7 @@ class Options:
 
         
 if __name__ == '__main__':
-    devinput2lircd = devinput()
+    devinput2lircd = devinput(inputDevice)
     with open(devinput2lircd.options.socket, "rwb") as socketpath:
         gobject.io_add_watch(socketpath, gobject.IO_IN, devinput2lircd.eventhandler)  
         fcntl.ioctl(socketpath.fileno(), 0x40044590, 1) #exclusive access to input device - so keypresses do not disturb other programs
