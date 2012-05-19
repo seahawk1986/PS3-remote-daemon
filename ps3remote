@@ -12,7 +12,6 @@
 
 import struct
 import os
-import sys
 import fcntl
 import datetime
 import gobject
@@ -24,6 +23,7 @@ from optparse import OptionParser
 '''if os.uname()[4] == "i686":
     inputEventFormat = 'iihhi'
     inputEventSize = 16''' 
+##########################################
 if os.uname()[4] == "x86_64":
     inputEventFormat = 'llHHi'
     inputEventSize = 24
@@ -43,13 +43,11 @@ class devinput():
         parser = Options()
         self.options = parser.get_opts()
         self.uinputdev = uinput.Device(events, self.options.name)
-            
-            
+                
     def eventhandler(self,sock, *args):
         event = socketpath.read(inputEventSize)
         (time1, time2, typeev, code, value) = struct.unpack(inputEventFormat, event)
-        if typeev == 0 and code == 0 and value == 0:
-            #print "Sync event"
+        if typeev == 0 and code == 0 and value == 0: # sync event
             pass
         elif value == 0:
             #print "Release %s"%(datetime.datetime.fromtimestamp(time1)+datetime.timedelta(microseconds=time2))
@@ -61,13 +59,12 @@ class devinput():
             #print "Type:",typeev,"\tCode: " ,code,"\tValue:", value
             #print code
             self.uinputdev.emit((typeev,code), value)
-            self.timer = gobject.timeout_add(self.options.repeat, self.repeatkey, code)
-            #pass
+            if typeev == 1:
+                self.timer = gobject.timeout_add(self.options.repeat, self.repeatkey, code)
         return True
         
     def repeatkey(self, code):
-        #print "repeat key %s"%(code)
-        self.uinputdev.emit((typeev,code), 2)
+        self.uinputdev.emit((1,code), 2)
         return True
         
 class Options:
@@ -84,16 +81,13 @@ class Options:
         (options, args) = self.parser.parse_args()
         return options
         
-
         
 if __name__ == '__main__':
     devinput2lircd = devinput()
     with open(devinput2lircd.options.socket, "rwb") as socketpath:
         gobject.io_add_watch(socketpath, gobject.IO_IN, devinput2lircd.eventhandler)  
         fcntl.ioctl(socketpath.fileno(), 0x40044590, 1) #exclusive access to input device - so keypresses do not disturb other programs
-        #print "starting MainLoop"
         gobject.MainLoop().run()
-        #print "after MainLoop"
 
     
 
