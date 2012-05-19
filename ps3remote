@@ -33,7 +33,7 @@ else:
 events = []
 
 for element in dir(uinput):
-    if element.startswith("KEY_") or element.startswith("BTN_"):
+    if element.startswith("KEY_") or element.startswith("BTN_") or element.startswith("REL_"):
         events.append(eval("uinput.%s"%(element)))
 
 class devinput():
@@ -55,19 +55,19 @@ class devinput():
             #print "Release %s"%(datetime.datetime.fromtimestamp(time1)+datetime.timedelta(microseconds=time2))
             #print "Type:",typeev,"\tCode: " ,code,"\tValue:", value
             gobject.source_remove(self.timer)
-            self.uinputdev.emit((1,code), 0)
+            self.uinputdev.emit((typeev,code), value)
         else:
             #print "Tastendruck %s"%(datetime.datetime.fromtimestamp(time1)+datetime.timedelta(microseconds=time2))
             #print "Type:",typeev,"\tCode: " ,code,"\tValue:", value
             #print code
-            self.uinputdev.emit((1,code), 1)
+            self.uinputdev.emit((typeev,code), value)
             self.timer = gobject.timeout_add(self.options.repeat, self.repeatkey, code)
             #pass
         return True
         
     def repeatkey(self, code):
         #print "repeat key %s"%(code)
-        self.uinputdev.emit((1,code), 2)
+        self.uinputdev.emit((typeev,code), 2)
         return True
         
 class Options:
